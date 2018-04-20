@@ -1,0 +1,135 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _reactNative = _require(_dependencyMap[0], "react-native");
+
+  var _eventTargetShim = _require(_dependencyMap[1], "event-target-shim");
+
+  var _eventTargetShim2 = _interopRequireDefault(_eventTargetShim);
+
+  var _MediaStreamErrorEvent = _require(_dependencyMap[2], "./MediaStreamErrorEvent");
+
+  var _MediaStreamErrorEvent2 = _interopRequireDefault(_MediaStreamErrorEvent);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  var MEDIA_STREAM_TRACK_EVENTS = ['ended', 'mute', 'unmute', 'overconstrained'];
+
+  var MediaStreamTrack = function (_EventTarget) {
+    _inherits(MediaStreamTrack, _EventTarget);
+
+    _createClass(MediaStreamTrack, null, [{
+      key: "getSources",
+      value: function getSources(success) {
+        var promise = WebRTCModule.mediaStreamTrackGetSources();
+
+        if (success) {
+          return promise.then(success);
+        }
+
+        return promise;
+      }
+    }]);
+
+    function MediaStreamTrack(info) {
+      _classCallCheck(this, MediaStreamTrack);
+
+      var _this = _possibleConstructorReturn(this, (MediaStreamTrack.__proto__ || Object.getPrototypeOf(MediaStreamTrack)).call(this));
+
+      var _readyState = info.readyState.toLowerCase();
+
+      _this._enabled = info.enabled;
+      _this.id = info.id;
+      _this.kind = info.kind;
+      _this.label = info.label;
+      _this.muted = false;
+      _this.readonly = true;
+      _this.remote = info.remote;
+      _this.readyState = _readyState === "initializing" || _readyState === "live" ? "live" : "ended";
+      return _this;
+    }
+
+    _createClass(MediaStreamTrack, [{
+      key: "stop",
+      value: function stop() {
+        if (this.remote) {
+          return;
+        }
+
+        WebRTCModule.mediaStreamTrackStop(this.id);
+        this._enabled = false;
+        this.readyState = 'ended';
+        this.muted = !this._enabled;
+      }
+    }, {
+      key: "_switchCamera",
+      value: function _switchCamera() {
+        if (this.remote) {
+          throw new Error('Not implemented for remote tracks');
+        }
+
+        if (this.kind !== 'video') {
+          throw new Error('Only implemented for video tracks');
+        }
+
+        WebRTCModule.mediaStreamTrackSwitchCamera(this.id);
+      }
+    }, {
+      key: "applyConstraints",
+      value: function applyConstraints() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "clone",
+      value: function clone() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "getCapabilities",
+      value: function getCapabilities() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "getConstraints",
+      value: function getConstraints() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "getSettings",
+      value: function getSettings() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "enabled",
+      get: function get() {
+        return this._enabled;
+      },
+      set: function set(enabled) {
+        if (enabled === this._enabled) {
+          return;
+        }
+
+        WebRTCModule.mediaStreamTrackSetEnabled(this.id, !this._enabled);
+        this._enabled = !this._enabled;
+        this.muted = !this._enabled;
+      }
+    }]);
+
+    return MediaStreamTrack;
+  }((0, _eventTargetShim2.default)(MEDIA_STREAM_TRACK_EVENTS));
+
+  exports.default = MediaStreamTrack;
+});

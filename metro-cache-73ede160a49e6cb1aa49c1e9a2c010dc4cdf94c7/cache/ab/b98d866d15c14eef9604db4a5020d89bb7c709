@@ -1,0 +1,22 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var RTCIceCandidateEvent = function RTCIceCandidateEvent(type, eventInitDict) {
+    _classCallCheck(this, RTCIceCandidateEvent);
+
+    this.type = type.toString();
+    this.candidate = null;
+
+    if (eventInitDict && eventInitDict.candidate) {
+      this.candidate = eventInitDict.candidate;
+    }
+  };
+
+  exports.default = RTCIceCandidateEvent;
+});

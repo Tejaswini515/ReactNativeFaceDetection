@@ -1,0 +1,27 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+  module.exports = withLegacyCallbacks;
+
+  function withLegacyCallbacks(method, callbackFirst, successIndex, failureIndex) {
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      var successPos = successIndex || (callbackFirst ? 0 : args.length - 2);
+      var failurePos = failureIndex || (callbackFirst ? 1 : args.length - 1);
+      var success = args[successPos];
+      var failure = args[failurePos];
+
+      if (typeof success === 'function' && typeof failure === 'function') {
+        var newArgs = args.filter(function (item) {
+          return item !== success && item !== failure;
+        });
+        return method.apply(undefined, _toConsumableArray(newArgs)).then(success).catch(failure);
+      }
+
+      return method.apply(undefined, args);
+    };
+  }
+});

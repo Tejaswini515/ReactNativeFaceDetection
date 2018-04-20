@@ -1,0 +1,39 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _reactNative = _require(_dependencyMap[0], "react-native");
+
+  var _propTypes = _require(_dependencyMap[1], "prop-types");
+
+  var _propTypes2 = _interopRequireDefault(_propTypes);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  var RTCView = {
+    name: 'RTCVideoView',
+    propTypes: {
+      mirror: _propTypes2.default.bool,
+      objectFit: _propTypes2.default.oneOf(['contain', 'cover']),
+      streamURL: _propTypes2.default.string,
+      zOrder: _propTypes2.default.number
+    }
+  };
+  var View = (0, _reactNative.requireNativeComponent)('RTCVideoView', RTCView, {
+    nativeOnly: {
+      testID: true,
+      accessibilityComponentType: true,
+      renderToHardwareTextureAndroid: true,
+      accessibilityLabel: true,
+      accessibilityLiveRegion: true,
+      importantForAccessibility: true,
+      onLayout: true,
+      nativeID: true
+    }
+  });
+  exports.default = View;
+});

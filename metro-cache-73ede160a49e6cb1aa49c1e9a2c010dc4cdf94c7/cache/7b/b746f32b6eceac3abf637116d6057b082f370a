@@ -1,0 +1,164 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _reactNative = _require(_dependencyMap[0], "react-native");
+
+  var _base64Js = _require(_dependencyMap[1], "base64-js");
+
+  var _base64Js2 = _interopRequireDefault(_base64Js);
+
+  var _eventTargetShim = _require(_dependencyMap[2], "event-target-shim");
+
+  var _eventTargetShim2 = _interopRequireDefault(_eventTargetShim);
+
+  var _MessageEvent = _require(_dependencyMap[3], "./MessageEvent");
+
+  var _MessageEvent2 = _interopRequireDefault(_MessageEvent);
+
+  var _RTCDataChannelEvent = _require(_dependencyMap[4], "./RTCDataChannelEvent");
+
+  var _RTCDataChannelEvent2 = _interopRequireDefault(_RTCDataChannelEvent);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  var DATA_CHANNEL_EVENTS = ['open', 'message', 'bufferedamountlow', 'close', 'error'];
+
+  var ResourceInUse = function (_Error) {
+    _inherits(ResourceInUse, _Error);
+
+    function ResourceInUse() {
+      _classCallCheck(this, ResourceInUse);
+
+      return _possibleConstructorReturn(this, (ResourceInUse.__proto__ || Object.getPrototypeOf(ResourceInUse)).apply(this, arguments));
+    }
+
+    return ResourceInUse;
+  }(Error);
+
+  var RTCDataChannel = function (_EventTarget) {
+    _inherits(RTCDataChannel, _EventTarget);
+
+    function RTCDataChannel(peerConnectionId, label, dataChannelDict) {
+      _classCallCheck(this, RTCDataChannel);
+
+      var _this2 = _possibleConstructorReturn(this, (RTCDataChannel.__proto__ || Object.getPrototypeOf(RTCDataChannel)).call(this));
+
+      _this2.binaryType = 'arraybuffer';
+      _this2.bufferedAmount = 0;
+      _this2.bufferedAmountLowThreshold = 0;
+      _this2.maxPacketLifeTime = null;
+      _this2.maxRetransmits = null;
+      _this2.negotiated = false;
+      _this2.ordered = true;
+      _this2.protocol = '';
+      _this2.readyState = 'connecting';
+      _this2._peerConnectionId = peerConnectionId;
+      _this2.label = label;
+      _this2.id = 'id' in dataChannelDict ? dataChannelDict.id : -1;
+      _this2.ordered = !!dataChannelDict.ordered;
+      _this2.maxPacketLifeTime = dataChannelDict.maxPacketLifeTime;
+      _this2.maxRetransmits = dataChannelDict.maxRetransmits;
+      _this2.protocol = dataChannelDict.protocol || '';
+      _this2.negotiated = !!dataChannelDict.negotiated;
+
+      _this2._registerEvents();
+
+      return _this2;
+    }
+
+    _createClass(RTCDataChannel, [{
+      key: "send",
+      value: function send(data) {
+        if (typeof data === 'string') {
+          WebRTCModule.dataChannelSend(this._peerConnectionId, this.id, data, 'text');
+          return;
+        }
+
+        if (ArrayBuffer.isView(data)) {
+          data = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+        } else if (data instanceof ArrayBuffer) {
+          data = new Uint8Array(data);
+        } else {
+          throw new TypeError('Data must be either string, ArrayBuffer, or ArrayBufferView');
+        }
+
+        WebRTCModule.dataChannelSend(this._peerConnectionId, this.id, _base64Js2.default.fromByteArray(data), 'binary');
+      }
+    }, {
+      key: "close",
+      value: function close() {
+        if (this.readyState === 'closing' || this.readyState === 'closed') {
+          return;
+        }
+
+        this.readyState = 'closing';
+        WebRTCModule.dataChannelClose(this._peerConnectionId, this.id);
+      }
+    }, {
+      key: "_unregisterEvents",
+      value: function _unregisterEvents() {
+        this._subscriptions.forEach(function (e) {
+          return e.remove();
+        });
+
+        this._subscriptions = [];
+      }
+    }, {
+      key: "_registerEvents",
+      value: function _registerEvents() {
+        var _this3 = this;
+
+        this._subscriptions = [_reactNative.DeviceEventEmitter.addListener('dataChannelStateChanged', function (ev) {
+          if (ev.peerConnectionId !== _this3._peerConnectionId || ev.id !== _this3.id) {
+            return;
+          }
+
+          _this3.readyState = ev.state;
+
+          if (_this3.readyState === 'open') {
+            _this3.dispatchEvent(new _RTCDataChannelEvent2.default('open', {
+              channel: _this3
+            }));
+          } else if (_this3.readyState === 'close') {
+            _this3.dispatchEvent(new _RTCDataChannelEvent2.default('close', {
+              channel: _this3
+            }));
+
+            _this3._unregisterEvents();
+          }
+        }), _reactNative.DeviceEventEmitter.addListener('dataChannelReceiveMessage', function (ev) {
+          if (ev.peerConnectionId !== _this3._peerConnectionId || ev.id !== _this3.id) {
+            return;
+          }
+
+          var data = ev.data;
+
+          if (ev.type === 'binary') {
+            data = _base64Js2.default.toByteArray(ev.data).buffer;
+          }
+
+          _this3.dispatchEvent(new _MessageEvent2.default('message', {
+            data: data
+          }));
+        })];
+      }
+    }]);
+
+    return RTCDataChannel;
+  }((0, _eventTargetShim2.default)(DATA_CHANNEL_EVENTS));
+
+  exports.default = RTCDataChannel;
+});

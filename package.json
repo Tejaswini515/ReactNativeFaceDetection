@@ -1,0 +1,26 @@
+{
+  "name": "FaceDetection",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+  "prepare-repository": "npm i -g react-native-cli yarn;yarn install; react- native link",
+  "install": "react-native run-android",
+  "start": "react-native start --reset-cache",
+  "android": "npm run install && npm run start",
+  "clean": "watchman watch-del-all && npm cache clean && cd android && ./gradlew clean && cd ..",
+  "test": "jest"
+  },
+  "dependencies": {
+    "react": "16.3.1",
+    "react-native": "0.55.3"
+  },
+  "devDependencies": {
+    "babel-jest": "22.4.3",
+    "babel-preset-react-native": "4.0.0",
+    "jest": "22.4.3",
+    "react-test-renderer": "16.3.1"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

@@ -1,0 +1,119 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _reactNative = _require(_dependencyMap[0], "react-native");
+
+  var _eventTargetShim = _require(_dependencyMap[1], "event-target-shim");
+
+  var _eventTargetShim2 = _interopRequireDefault(_eventTargetShim);
+
+  var _MediaStreamTrackEvent = _require(_dependencyMap[2], "./MediaStreamTrackEvent");
+
+  var _MediaStreamTrackEvent2 = _interopRequireDefault(_MediaStreamTrackEvent);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  var MEDIA_STREAM_EVENTS = ['active', 'inactive', 'addtrack', 'removetrack'];
+
+  var MediaStream = function (_EventTarget) {
+    _inherits(MediaStream, _EventTarget);
+
+    function MediaStream(id, reactTag) {
+      _classCallCheck(this, MediaStream);
+
+      var _this = _possibleConstructorReturn(this, (MediaStream.__proto__ || Object.getPrototypeOf(MediaStream)).call(this));
+
+      _this.active = true;
+      _this._tracks = [];
+      _this.id = id;
+      _this.reactTag = typeof reactTag === 'undefined' ? id : reactTag;
+      return _this;
+    }
+
+    _createClass(MediaStream, [{
+      key: "addTrack",
+      value: function addTrack(track) {
+        this._tracks.push(track);
+
+        this.dispatchEvent(new _MediaStreamTrackEvent2.default('addtrack', {
+          track: track
+        }));
+      }
+    }, {
+      key: "removeTrack",
+      value: function removeTrack(track) {
+        var index = this._tracks.indexOf(track);
+
+        if (index === -1) {
+          return;
+        }
+
+        WebRTCModule.mediaStreamTrackRelease(this.reactTag, track.id);
+
+        this._tracks.splice(index, 1);
+
+        this.dispatchEvent(new _MediaStreamTrackEvent2.default('removetrack', {
+          track: track
+        }));
+      }
+    }, {
+      key: "getTracks",
+      value: function getTracks() {
+        return this._tracks.slice();
+      }
+    }, {
+      key: "getTrackById",
+      value: function getTrackById(trackId) {
+        return this._tracks.find(function (track) {
+          return track.id === trackId;
+        });
+      }
+    }, {
+      key: "getAudioTracks",
+      value: function getAudioTracks() {
+        return this._tracks.filter(function (track) {
+          return track.kind === 'audio';
+        });
+      }
+    }, {
+      key: "getVideoTracks",
+      value: function getVideoTracks() {
+        return this._tracks.filter(function (track) {
+          return track.kind === 'video';
+        });
+      }
+    }, {
+      key: "clone",
+      value: function clone() {
+        throw new Error('Not implemented.');
+      }
+    }, {
+      key: "toURL",
+      value: function toURL() {
+        return this.reactTag;
+      }
+    }, {
+      key: "release",
+      value: function release() {
+        WebRTCModule.mediaStreamRelease(this.reactTag);
+      }
+    }]);
+
+    return MediaStream;
+  }((0, _eventTargetShim2.default)(MEDIA_STREAM_EVENTS));
+
+  exports.default = MediaStream;
+});

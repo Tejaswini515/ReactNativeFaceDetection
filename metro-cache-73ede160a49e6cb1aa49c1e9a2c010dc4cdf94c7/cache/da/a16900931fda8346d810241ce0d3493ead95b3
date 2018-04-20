@@ -1,0 +1,196 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _react2 = _require(_dependencyMap[0], "react");
+
+  var _react3 = _interopRequireDefault(_react2);
+
+  var _index = _require(_dependencyMap[1], "./node_modules/react-transform-hmr/lib/index.js");
+
+  var _index2 = _interopRequireDefault(_index);
+
+  var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[typeof Symbol === "function" ? Symbol.iterator : "@@iterator"](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if ((typeof Symbol === "function" ? Symbol.iterator : "@@iterator") in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+  var _jsxFileName = "/home/teju/FaceDetection/VideoTest.js";
+
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _reactNative = _require(_dependencyMap[2], "react-native");
+
+  var _reactNativeWebrtc = _require(_dependencyMap[3], "react-native-webrtc");
+
+  var _reactNativePermissions = _require(_dependencyMap[4], "react-native-permissions");
+
+  var _reactNativePermissions2 = _interopRequireDefault(_reactNativePermissions);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var _components = {
+    VideoTest: {
+      displayName: "VideoTest"
+    }
+  };
+
+  var _node_modulesReactTransformHmrLibIndexJs2 = (0, _index2.default)({
+    filename: "/home/teju/FaceDetection/VideoTest.js",
+    components: _components,
+    locals: [module],
+    imports: [_react3.default]
+  });
+
+  function _wrapComponent(id) {
+    return function (Component) {
+      return _node_modulesReactTransformHmrLibIndexJs2(Component, id);
+    };
+  }
+
+  var VideoTest = _wrapComponent("VideoTest")(function (_Component) {
+    _inherits(VideoTest, _Component);
+
+    function VideoTest() {
+      _classCallCheck(this, VideoTest);
+
+      var _this = _possibleConstructorReturn(this, (VideoTest.__proto__ || Object.getPrototypeOf(VideoTest)).call(this));
+
+      _this.state = {
+        videoURL: null,
+        permissions: null
+      };
+      return _this;
+    }
+
+    _createClass(VideoTest, [{
+      key: "render",
+      value: function render() {
+        var _this2 = this;
+
+        return _react3.default.createElement(
+          _reactNative.View,
+          {
+            style: styles.container,
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 38
+            }
+          },
+          _react3.default.createElement(
+            _reactNative.Text,
+            {
+              style: styles.welcome,
+              __source: {
+                fileName: _jsxFileName,
+                lineNumber: 39
+              }
+            },
+            "Welcome to ReactNativeWebRTC!"
+          ),
+          _react3.default.createElement(_reactNativeWebrtc.RTCView, {
+            style: styles.rtc,
+            streamURL: this.state.videoURL,
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 42
+            }
+          }),
+          _react3.default.createElement(
+            _reactNative.Text,
+            {
+              style: styles.instructions,
+              __source: {
+                fileName: _jsxFileName,
+                lineNumber: 43
+              }
+            },
+            JSON.stringify(this.state, null, 2)
+          ),
+          _react3.default.createElement(_reactNative.Button, {
+            onPress: function onPress() {
+              return _this2.onPress();
+            },
+            title: "getUserMedia()",
+            color: "#841584",
+            __source: {
+              fileName: _jsxFileName,
+              lineNumber: 46
+            }
+          })
+        );
+      }
+    }, {
+      key: "componentDidMount",
+      value: function componentDidMount() {
+        var _this3 = this;
+
+        Promise.all([_reactNativePermissions2.default.requestPermission('camera'), _reactNativePermissions2.default.requestPermission('microphone')]).then(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              cam = _ref2[0],
+              mic = _ref2[1];
+
+          _this3.setState({
+            permissions: {
+              cam: cam,
+              mic: mic
+            }
+          });
+        });
+      }
+    }, {
+      key: "onPress",
+      value: function onPress() {
+        var _this4 = this;
+
+        (0, _reactNativeWebrtc.getUserMedia)({
+          audio: true,
+          video: {
+            mandatory: {}
+          }
+        }, function (stream) {
+          _this4.setState({
+            videoURL: stream.toURL()
+          });
+        }, function (err) {
+          return console.error(err);
+        });
+      }
+    }]);
+
+    return VideoTest;
+  }(_react2.Component));
+
+  exports.default = VideoTest;
+
+  var styles = _reactNative.StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F5FCFF'
+    },
+    welcome: {
+      fontSize: 20,
+      textAlign: 'center',
+      margin: 10,
+      paddingTop: 20
+    },
+    instructions: {
+      flex: 1,
+      backgroundColor: '#eee',
+      color: '#333333',
+      padding: 5,
+      marginTop: 10
+    },
+    rtc: {
+      height: 360,
+      width: 640,
+      backgroundColor: '#000'
+    }
+  });
+});

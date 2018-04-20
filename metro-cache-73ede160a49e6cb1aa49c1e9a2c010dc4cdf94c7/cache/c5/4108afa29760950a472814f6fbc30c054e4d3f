@@ -1,0 +1,118 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[typeof Symbol === "function" ? Symbol.iterator : "@@iterator"](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if ((typeof Symbol === "function" ? Symbol.iterator : "@@iterator") in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+  var _reactNative = _require(_dependencyMap[0], "react-native");
+
+  var _MediaStream = _require(_dependencyMap[1], "./MediaStream");
+
+  var _MediaStream2 = _interopRequireDefault(_MediaStream);
+
+  var _MediaStreamError = _require(_dependencyMap[2], "./MediaStreamError");
+
+  var _MediaStreamError2 = _interopRequireDefault(_MediaStreamError);
+
+  var _MediaStreamTrack = _require(_dependencyMap[3], "./MediaStreamTrack");
+
+  var _MediaStreamTrack2 = _interopRequireDefault(_MediaStreamTrack);
+
+  var _withLegacyCallbacks = _require(_dependencyMap[4], "./withLegacyCallbacks");
+
+  var _withLegacyCallbacks2 = _interopRequireDefault(_withLegacyCallbacks);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  exports.default = (0, _withLegacyCallbacks2.default)(function (constraints) {
+    if (typeof constraints === 'object') {
+      var requestedMediaTypes = 0;
+      var _arr = ['audio', 'video'];
+
+      for (var _i = 0; _i < _arr.length; _i++) {
+        var mediaType = _arr[_i];
+        var mediaTypeConstraints = constraints[mediaType];
+        var typeofMediaTypeConstraints = typeof mediaTypeConstraints;
+
+        if (typeofMediaTypeConstraints !== 'undefined') {
+          if (typeofMediaTypeConstraints === 'boolean') {
+            mediaTypeConstraints && ++requestedMediaTypes;
+          } else if (typeofMediaTypeConstraints == 'object') {
+            ++requestedMediaTypes;
+          } else {
+            throw new TypeError('constraints.' + mediaType + ' is neither a boolean nor a dictionary');
+          }
+        }
+      }
+
+      if (requestedMediaTypes === 0) {
+        throw new TypeError('constraints requests no media types');
+      }
+    } else {
+      throw new TypeError('constraints is not a dictionary');
+    }
+
+    return WebRTCModule.getUserMedia(constraints).then(function (_ref) {
+      var _ref2 = _slicedToArray(_ref, 2),
+          id = _ref2[0],
+          tracks = _ref2[1];
+
+      var stream = new _MediaStream2.default(id);
+
+      for (var _iterator = tracks, _isArray = Array.isArray(_iterator), _i2 = 0, _iterator = _isArray ? _iterator : _iterator[typeof Symbol === "function" ? Symbol.iterator : "@@iterator"]();;) {
+        var _ref3;
+
+        if (_isArray) {
+          if (_i2 >= _iterator.length) break;
+          _ref3 = _iterator[_i2++];
+        } else {
+          _i2 = _iterator.next();
+          if (_i2.done) break;
+          _ref3 = _i2.value;
+        }
+
+        var track = _ref3;
+        stream.addTrack(new _MediaStreamTrack2.default(track));
+      }
+
+      return stream;
+    }).catch(function (_ref4) {
+      var message = _ref4.message,
+          code = _ref4.code;
+      var error = void 0;
+
+      switch (code) {
+        case 'DOMException':
+          if (typeof DOMException === 'function') {
+            error = new DOMException(undefined, message);
+          }
+
+          break;
+
+        case 'OverconstrainedError':
+          if (typeof OverconstrainedError === 'function') {
+            error = new OverconstrainedError(undefined, message);
+          }
+
+          break;
+
+        case 'TypeError':
+          error = new TypeError(message);
+          break;
+      }
+
+      if (!error) {
+        error = new _MediaStreamError2.default({
+          message: message,
+          name: code
+        });
+      }
+
+      throw error;
+    });
+  });
+});

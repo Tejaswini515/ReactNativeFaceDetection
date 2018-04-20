@@ -1,0 +1,43 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  var _RTCPeerConnection = _require(_dependencyMap[0], "./RTCPeerConnection");
+
+  var _RTCPeerConnection2 = _interopRequireDefault(_RTCPeerConnection);
+
+  var _RTCIceCandidate = _require(_dependencyMap[1], "./RTCIceCandidate");
+
+  var _RTCIceCandidate2 = _interopRequireDefault(_RTCIceCandidate);
+
+  var _RTCSessionDescription = _require(_dependencyMap[2], "./RTCSessionDescription");
+
+  var _RTCSessionDescription2 = _interopRequireDefault(_RTCSessionDescription);
+
+  var _RTCView = _require(_dependencyMap[3], "./RTCView");
+
+  var _RTCView2 = _interopRequireDefault(_RTCView);
+
+  var _MediaStream = _require(_dependencyMap[4], "./MediaStream");
+
+  var _MediaStream2 = _interopRequireDefault(_MediaStream);
+
+  var _MediaStreamTrack = _require(_dependencyMap[5], "./MediaStreamTrack");
+
+  var _MediaStreamTrack2 = _interopRequireDefault(_MediaStreamTrack);
+
+  var _getUserMedia = _require(_dependencyMap[6], "./getUserMedia");
+
+  var _getUserMedia2 = _interopRequireDefault(_getUserMedia);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  module.exports = {
+    RTCPeerConnection: _RTCPeerConnection2.default,
+    RTCIceCandidate: _RTCIceCandidate2.default,
+    RTCSessionDescription: _RTCSessionDescription2.default,
+    RTCView: _RTCView2.default,
+    MediaStream: _MediaStream2.default,
+    MediaStreamTrack: _MediaStreamTrack2.default,
+    getUserMedia: _getUserMedia2.default
+  };
+});

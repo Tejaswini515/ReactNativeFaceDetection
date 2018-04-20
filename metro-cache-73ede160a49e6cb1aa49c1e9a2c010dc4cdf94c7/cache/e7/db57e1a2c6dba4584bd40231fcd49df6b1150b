@@ -1,0 +1,365 @@
+__d(function (global, _require, module, exports, _dependencyMap) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _eventTargetShim = _require(_dependencyMap[0], "event-target-shim");
+
+  var _eventTargetShim2 = _interopRequireDefault(_eventTargetShim);
+
+  var _reactNative = _require(_dependencyMap[1], "react-native");
+
+  var _MediaStream = _require(_dependencyMap[2], "./MediaStream");
+
+  var _MediaStream2 = _interopRequireDefault(_MediaStream);
+
+  var _MediaStreamEvent = _require(_dependencyMap[3], "./MediaStreamEvent");
+
+  var _MediaStreamEvent2 = _interopRequireDefault(_MediaStreamEvent);
+
+  var _MediaStreamTrack = _require(_dependencyMap[4], "./MediaStreamTrack");
+
+  var _MediaStreamTrack2 = _interopRequireDefault(_MediaStreamTrack);
+
+  var _RTCDataChannel = _require(_dependencyMap[5], "./RTCDataChannel");
+
+  var _RTCDataChannel2 = _interopRequireDefault(_RTCDataChannel);
+
+  var _RTCDataChannelEvent = _require(_dependencyMap[6], "./RTCDataChannelEvent");
+
+  var _RTCDataChannelEvent2 = _interopRequireDefault(_RTCDataChannelEvent);
+
+  var _RTCSessionDescription = _require(_dependencyMap[7], "./RTCSessionDescription");
+
+  var _RTCSessionDescription2 = _interopRequireDefault(_RTCSessionDescription);
+
+  var _RTCIceCandidate = _require(_dependencyMap[8], "./RTCIceCandidate");
+
+  var _RTCIceCandidate2 = _interopRequireDefault(_RTCIceCandidate);
+
+  var _RTCIceCandidateEvent = _require(_dependencyMap[9], "./RTCIceCandidateEvent");
+
+  var _RTCIceCandidateEvent2 = _interopRequireDefault(_RTCIceCandidateEvent);
+
+  var _RTCEvent = _require(_dependencyMap[10], "./RTCEvent");
+
+  var _RTCEvent2 = _interopRequireDefault(_RTCEvent);
+
+  var _withLegacyCallbacks = _require(_dependencyMap[11], "./withLegacyCallbacks");
+
+  var _withLegacyCallbacks2 = _interopRequireDefault(_withLegacyCallbacks);
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var WebRTCModule = _reactNative.NativeModules.WebRTCModule;
+  var DEFAULT_SDP_CONSTRAINTS = {
+    mandatory: {
+      OfferToReceiveAudio: true,
+      OfferToReceiveVideo: true
+    },
+    optional: []
+  };
+  var DEFAULT_PC_CONSTRAINTS = {
+    mandatory: {},
+    optional: [{
+      DtlsSrtpKeyAgreement: true
+    }]
+  };
+  var PEER_CONNECTION_EVENTS = ['connectionstatechange', 'icecandidate', 'icecandidateerror', 'iceconnectionstatechange', 'icegatheringstatechange', 'negotiationneeded', 'signalingstatechange', 'datachannel', 'addstream', 'removestream'];
+  var nextPeerConnectionId = 0;
+
+  var RTCPeerConnection = function (_EventTarget) {
+    _inherits(RTCPeerConnection, _EventTarget);
+
+    function RTCPeerConnection(configuration) {
+      _classCallCheck(this, RTCPeerConnection);
+
+      var _this = _possibleConstructorReturn(this, (RTCPeerConnection.__proto__ || Object.getPrototypeOf(RTCPeerConnection)).call(this));
+
+      _this.signalingState = 'stable';
+      _this.iceGatheringState = 'new';
+      _this.iceConnectionState = 'new';
+      _this._remoteStreams = [];
+      _this._dataChannelIds = new Set();
+      _this._peerConnectionId = nextPeerConnectionId++;
+      WebRTCModule.peerConnectionInit(configuration, DEFAULT_PC_CONSTRAINTS, _this._peerConnectionId);
+
+      _this._registerEvents();
+
+      _this.createOffer = (0, _withLegacyCallbacks2.default)(_this.createOffer.bind(_this), true);
+      _this.createAnswer = (0, _withLegacyCallbacks2.default)(_this.createAnswer.bind(_this), true);
+      _this.setLocalDescription = (0, _withLegacyCallbacks2.default)(_this.setLocalDescription.bind(_this), false, 1, 2);
+      _this.setRemoteDescription = (0, _withLegacyCallbacks2.default)(_this.setRemoteDescription.bind(_this));
+      _this.addIceCandidate = (0, _withLegacyCallbacks2.default)(_this.addIceCandidate.bind(_this));
+      _this.getStats = (0, _withLegacyCallbacks2.default)(_this.getStats.bind(_this));
+      return _this;
+    }
+
+    _createClass(RTCPeerConnection, [{
+      key: "addStream",
+      value: function addStream(stream) {
+        WebRTCModule.peerConnectionAddStream(stream.reactTag, this._peerConnectionId);
+      }
+    }, {
+      key: "removeStream",
+      value: function removeStream(stream) {
+        WebRTCModule.peerConnectionRemoveStream(stream.reactTag, this._peerConnectionId);
+      }
+    }, {
+      key: "_mergeMediaConstraints",
+      value: function _mergeMediaConstraints(options) {
+        var constraints = _extends({}, DEFAULT_SDP_CONSTRAINTS);
+
+        if (options) {
+          if (options.mandatory) {
+            constraints.mandatory = _extends({}, constraints.mandatory, options.mandatory);
+          }
+
+          if (options.optional && Array.isArray(options.optional)) {
+            constraints.optional = options.optional.concat(constraints.optional);
+          }
+        }
+
+        return constraints;
+      }
+    }, {
+      key: "createOffer",
+      value: function createOffer(options) {
+        return WebRTCModule.peerConnectionCreateOffer(this._peerConnectionId, this._mergeMediaConstraints(options)).then(function (data) {
+          return new _RTCSessionDescription2.default(data);
+        });
+      }
+    }, {
+      key: "createAnswer",
+      value: function createAnswer(options) {
+        return WebRTCModule.peerConnectionCreateAnswer(this._peerConnectionId, this._mergeMediaConstraints(options)).then(function (data) {
+          return new _RTCSessionDescription2.default(data);
+        });
+      }
+    }, {
+      key: "setConfiguration",
+      value: function setConfiguration(configuration) {
+        WebRTCModule.peerConnectionSetConfiguration(configuration, this._peerConnectionId);
+      }
+    }, {
+      key: "setLocalDescription",
+      value: function setLocalDescription(sessionDescription, constraints) {
+        var _this2 = this;
+
+        return WebRTCModule.peerConnectionSetLocalDescription(sessionDescription.toJSON(), this._peerConnectionId).then(function () {
+          _this2.localDescription = sessionDescription;
+          return;
+        });
+      }
+    }, {
+      key: "setRemoteDescription",
+      value: function setRemoteDescription(sessionDescription) {
+        var _this3 = this;
+
+        return WebRTCModule.peerConnectionSetRemoteDescription(sessionDescription.toJSON(), this._peerConnectionId).then(function () {
+          _this3.remoteDescription = sessionDescription;
+          return;
+        });
+      }
+    }, {
+      key: "addIceCandidate",
+      value: function addIceCandidate(candidate) {
+        return WebRTCModule.peerConnectionAddICECandidate(candidate.toJSON(), this._peerConnectionId);
+      }
+    }, {
+      key: "getStats",
+      value: function getStats(track) {
+        if (WebRTCModule.peerConnectionGetStats) {
+          return WebRTCModule.peerConnectionGetStats(track && track.id || '', this._peerConnectionId).then(function (stats) {
+            if (typeof stats === 'string') {
+              try {
+                stats = JSON.parse(stats);
+              } catch (e) {
+                throw e;
+              }
+            }
+
+            return stats;
+          });
+        } else {
+          console.warn('RTCPeerConnection getStats not supported');
+        }
+      }
+    }, {
+      key: "getRemoteStreams",
+      value: function getRemoteStreams() {
+        return this._remoteStreams.slice();
+      }
+    }, {
+      key: "close",
+      value: function close() {
+        WebRTCModule.peerConnectionClose(this._peerConnectionId);
+      }
+    }, {
+      key: "_unregisterEvents",
+      value: function _unregisterEvents() {
+        this._subscriptions.forEach(function (e) {
+          return e.remove();
+        });
+
+        this._subscriptions = [];
+      }
+    }, {
+      key: "_registerEvents",
+      value: function _registerEvents() {
+        var _this4 = this;
+
+        this._subscriptions = [_reactNative.DeviceEventEmitter.addListener('peerConnectionOnRenegotiationNeeded', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          _this4.dispatchEvent(new _RTCEvent2.default('negotiationneeded'));
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionIceConnectionChanged', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          _this4.iceConnectionState = ev.iceConnectionState;
+
+          _this4.dispatchEvent(new _RTCEvent2.default('iceconnectionstatechange'));
+
+          if (ev.iceConnectionState === 'closed') {
+            _this4._unregisterEvents();
+          }
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionSignalingStateChanged', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          _this4.signalingState = ev.signalingState;
+
+          _this4.dispatchEvent(new _RTCEvent2.default('signalingstatechange'));
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionAddedStream', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          var stream = new _MediaStream2.default(ev.streamId, ev.streamReactTag);
+          var tracks = ev.tracks;
+
+          for (var i = 0; i < tracks.length; i++) {
+            stream.addTrack(new _MediaStreamTrack2.default(tracks[i]));
+          }
+
+          _this4._remoteStreams.push(stream);
+
+          _this4.dispatchEvent(new _MediaStreamEvent2.default('addstream', {
+            stream: stream
+          }));
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionRemovedStream', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          var stream = _this4._remoteStreams.find(function (s) {
+            return s.reactTag === ev.streamId;
+          });
+
+          if (stream) {
+            var index = _this4._remoteStreams.indexOf(stream);
+
+            if (index > -1) {
+              _this4._remoteStreams.splice(index, 1);
+            }
+          }
+
+          _this4.dispatchEvent(new _MediaStreamEvent2.default('removestream', {
+            stream: stream
+          }));
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionGotICECandidate', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          var candidate = new _RTCIceCandidate2.default(ev.candidate);
+          var event = new _RTCIceCandidateEvent2.default('icecandidate', {
+            candidate: candidate
+          });
+
+          _this4.dispatchEvent(event);
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionIceGatheringChanged', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          _this4.iceGatheringState = ev.iceGatheringState;
+
+          if (_this4.iceGatheringState === 'complete') {
+            _this4.dispatchEvent(new _RTCIceCandidateEvent2.default('icecandidate', null));
+          }
+
+          _this4.dispatchEvent(new _RTCEvent2.default('icegatheringstatechange'));
+        }), _reactNative.DeviceEventEmitter.addListener('peerConnectionDidOpenDataChannel', function (ev) {
+          if (ev.id !== _this4._peerConnectionId) {
+            return;
+          }
+
+          var evDataChannel = ev.dataChannel;
+          var id = evDataChannel.id;
+
+          if (typeof id !== 'number' || id === -1) {
+            return;
+          }
+
+          var channel = new _RTCDataChannel2.default(_this4._peerConnectionId, evDataChannel.label, evDataChannel);
+
+          _this4._dataChannelIds.add(id);
+
+          _this4.dispatchEvent(new _RTCDataChannelEvent2.default('datachannel', {
+            channel: channel
+          }));
+        })];
+      }
+    }, {
+      key: "createDataChannel",
+      value: function createDataChannel(label, dataChannelDict) {
+        var id = void 0;
+        var dataChannelIds = this._dataChannelIds;
+
+        if (dataChannelDict && 'id' in dataChannelDict) {
+          id = dataChannelDict.id;
+
+          if (typeof id !== 'number') {
+            throw new TypeError('DataChannel id must be a number: ' + id);
+          }
+
+          if (dataChannelIds.has(id)) {
+            throw new ResourceInUse('DataChannel id already in use: ' + id);
+          }
+        } else {
+          for (id = 0; id < 65535 && dataChannelIds.has(id); ++id) {}
+
+          dataChannelDict = _extends({
+            id: id
+          }, dataChannelDict);
+        }
+
+        WebRTCModule.createDataChannel(this._peerConnectionId, label, dataChannelDict);
+        dataChannelIds.add(id);
+        return new _RTCDataChannel2.default(this._peerConnectionId, label, dataChannelDict);
+      }
+    }]);
+
+    return RTCPeerConnection;
+  }((0, _eventTargetShim2.default)(PEER_CONNECTION_EVENTS));
+
+  exports.default = RTCPeerConnection;
+});
